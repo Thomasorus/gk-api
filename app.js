@@ -1,6 +1,6 @@
 'use strict'
 
-const fastify = require('fastify');
+const fastify = require('fastify')();
 const models = require('./models');
 const fetch = require('node-fetch');
 const HTMLParser = require('node-html-parser');
@@ -8,19 +8,25 @@ const fastifyCron = require('fastify-cron');
 const RssParser = require('rss-parser');
 const compareAsc = require('date-fns/compareAsc')
 
+
+fastify.register(require('fastify-rate-limit'), {
+    max: 100,
+    timeWindow: '1 minute'
+})
+
+
 const rssParser = new RssParser();
 const Entry = models.Entry;
 
 function build(opts={}) {
-  const app = fastify(opts);
 
-  app.get('/', async function (request, reply) {
+  fastify.get('/', async function (request, reply) {
     await Entry.sync();
     const entries = await Entry.findAll();
     return { entries };
   });
 
-  app.get('/update', async function (request, reply) {
+  fastify.get('/update', async function (request, reply) {
     await Entry.sync();
     const entries = await Entry.findAll();
 
@@ -53,7 +59,7 @@ function build(opts={}) {
     return await Entry.findAll();
   });
 
-  app.get('/fetchContent/:entryId', async function (request, reply) {
+  fastify.get('/fetchContent/:entryId', async function (request, reply) {
     await Entry.sync();
     const id = request.params.entryId
     const entry = await Entry.findAll({
@@ -68,7 +74,7 @@ function build(opts={}) {
     return {entry}
   });
 
-  return app;
+  return fastify;
 }
 
 async function fetchContent(entry) {
