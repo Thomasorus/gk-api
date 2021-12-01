@@ -1,0 +1,11 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "gk-api.sqlite3"
+  },
+  "test": {
+    "dialect": "sqlite",
+    "storage": ":memory:"
+  },
+  "feed": "https://www.gamekult.com/feed.xml"
+}
