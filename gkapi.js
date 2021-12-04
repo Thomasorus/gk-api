@@ -23,36 +23,62 @@ function build(opts={}) {
   fastify.get('/', async function (request, reply) {
     await Entry.sync();
     const entries = await Entry.findAll();
+
+    entries.sort(function(a,b){
+      return toDatetime(b.date) - toDatetime(a.date);
+    });
+
     return { entries };
   });
 
   fastify.get('/update', async function (request, reply) {
+
+    const feed = await rssParser.parseURL("https://www.gamekult.com/feed.xml");
+    const items = feed.items
+
     await Entry.sync();
     const entries = await Entry.findAll();
 
-    const feed = await rssParser.parseURL("https://www.gamekult.com/feed.xml");
+    let  closest = null
+    if(entries.length > 0) {
+      const today = new Date();
+      const closestEntry = entries.reduce((a, b) => a.pubDate - today < b.pubDate - today ? a : b);
+      closest = new Date(closestEntry.pubDate);
+    }
 
-    const today = new Date();
-    const closestEntry = entries.reduce((a, b) => a.pubDate - today < b.pubDate - today ? a : b);
-    const closest = new Date(closestEntry.pubDate);
 
-    const items = feed.items
     items.forEach(el => {
-      const elDate = new Date(el.pubDate);
-      if(compareAsc(elDate, closest) > 0) {
-        const obj = {
-          guid: el.guid,
-          title: el.title,
-          creator: el.creator,
-          link: el.link,
-          pubDate: el.pubDate,
-          description: el.content,
-          image: el.enclosure.url,
-          content: ""
+      if (closest) {
+        const elDate = toDatetime(el.pubDate)
+          if(compareAsc(elDate, closest) > 0) {
+          const obj = {
+            guid: el.guid,
+            title: el.title,
+            creator: el.creator,
+            link: el.link,
+            pubDate: el.pubDate,
+            description: el.content,
+            image: el.enclosure.url,
+            content: ""
+          }
+          Entry.create({
+              ...obj
+          });
         }
-        Entry.create({
-            ...obj
-        });
+      } else {
+        const obj = {
+            guid: el.guid,
+            title: el.title,
+            creator: el.creator,
+            link: el.link,
+            pubDate: el.pubDate,
+            description: el.content,
+            image: el.enclosure.url,
+            content: ""
+          }
+          Entry.create({
+              ...obj
+          });
       }
     })
 
@@ -85,6 +111,13 @@ async function fetchContent(entry) {
   const root = HTMLParser.parse(body)
   const content = root.querySelector('.gk__content__container')
   return content.toString()
+}
+
+function toDatetime(pubDate) {
+  const date = new Date(pubDate);
+  const months = Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+  const string = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear()
+  return string
 }
 
 module.exports = build;

@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Entry.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true
+    },
     guid: DataTypes.STRING,
     title: DataTypes.STRING,
     creator: DataTypes.STRING,
