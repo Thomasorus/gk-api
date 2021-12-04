@@ -95,7 +95,12 @@ function build(opts={}) {
     });
     if(entry.content == undefined) {
       const entryContent = await fetchContent(entry[0])
-      entry[0].content = entryContent
+      const cleanedContent = entryContent
+          .replace(/src=".*.svg"/g, "")
+          .replace(/data-src=/g, "src=")
+          .replace(/w283.jpg/g, "w500.jpg")
+          .replace(/h200.jpg/g, 'h500.jpg')
+      entry[0].content = cleanedContent
     }
     return {entry}
   });
@@ -108,7 +113,17 @@ async function fetchContent(entry) {
       method: 'GET',
   });
   const body = await response.text()
-  const root = HTMLParser.parse(body)
+  const options = {
+  lowerCaseTagName: false,
+  comment: false,
+  blockTextElements: {
+    script: false, // keep text content when parsing
+    noscript: true, // keep text content when parsing
+    style: false,    // keep text content when parsing
+    pre: false     // keep text content when parsing
+  }
+}
+  const root = HTMLParser.parse(body, options)
   const content = root.querySelector('.gk__content__container')
   return content.toString()
 }
