@@ -16,7 +16,8 @@ fastify.register(require('fastify-rate-limit'), {
 
 
 fastify.register(require('fastify-cors'), {
-  // put your options here
+  origin: true,
+      methods: ["GET","POST", "DELETE", "PUT", "PATCH"]
 })
 
 
