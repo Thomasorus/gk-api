@@ -16,6 +16,7 @@
   "dependencies": {
     "date-fns": "^2.27.0",
     "fastify": "^3.15.1",
+    "fastify-cors": "^6.0.2",
     "fastify-cron": "^1.1.2",
     "fastify-rate-limit": "^5.6.2",
     "node-fetch": "^2.6.6",

@@ -7,7 +7,7 @@ const server = require('./gkapi')({
   }
 });
 
-server.listen(3000, (err, address) => {
+server.listen(3001, (err, address) => {
   if (err) {
     console.log(err);
     process.exit(1);

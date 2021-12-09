@@ -15,6 +15,11 @@ fastify.register(require('fastify-rate-limit'), {
 })
 
 
+fastify.register(require('fastify-cors'), {
+  // put your options here
+})
+
+
 const rssParser = new RssParser();
 const Entry = models.Entry;
 
