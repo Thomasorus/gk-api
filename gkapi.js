@@ -4,7 +4,6 @@ const fastify = require('fastify')();
 const models = require('./models');
 const fetch = require('node-fetch');
 const HTMLParser = require('node-html-parser');
-const fastifyCron = require('fastify-cron');
 const RssParser = require('rss-parser');
 const compareAsc = require('date-fns/compareAsc')
 const parseISO = require('date-fns/parseISO')
@@ -17,7 +16,7 @@ fastify.register(require('fastify-rate-limit'), {
 
 fastify.register(require('fastify-cors'), {
   origin: true,
-  methods: ["GET","POST", "DELETE", "PUT", "PATCH"]
+  methods: ["GET"]
 })
 
 
@@ -31,7 +30,9 @@ function build(opts={}) {
     const entries = await Entry.findAll();
 
     entries.sort(function(a,b){
-      return toDatetime(b.date) - toDatetime(a.date);
+      const aTime = new Date(a.pubDate)
+      const bTime = new Date(b.pubDate)
+      return bTime - aTime
     });
 
     return { entries };
@@ -52,11 +53,11 @@ function build(opts={}) {
       closest = new Date(closestEntry.pubDate);
     }
 
-
     items.forEach(el => {
       if (closest) {
-        const elDate = toDatetime(el.pubDate)
-          if(compareAsc(parseISO(elDate), parseISO(closest)) > 0) {
+        const elDate = new Date(el.pubDate)
+        const compare = compareAsc(closest, elDate)
+          if(compare === 1) {
           const obj = {
             guid: el.guid,
             title: el.title,
@@ -72,6 +73,7 @@ function build(opts={}) {
           });
         }
       } else {
+        // If closest does not exist then there's 0 entries, create them all
         const obj = {
             guid: el.guid,
             title: el.title,
@@ -88,7 +90,15 @@ function build(opts={}) {
       }
     })
 
-    return await Entry.findAll();
+    const newEntries = await Entry.findAll();
+
+    newEntries.sort(function(a,b){
+      const aTime = new Date(a.pubDate)
+      const bTime = new Date(b.pubDate)
+      return bTime - aTime
+    });
+
+    return newEntries
   });
 
   fastify.get('/fetchContent/:entryId', async function (request, reply) {
@@ -136,6 +146,7 @@ async function fetchContent(entry) {
 
 function toDatetime(pubDate) {
   const date = new Date(pubDate);
+  console.log({date})
   const months = Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
   const string = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear()
   return string
