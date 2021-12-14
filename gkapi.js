@@ -49,7 +49,7 @@ function build(opts={}) {
     let  closest = null
     if(entries.length > 0) {
       const today = new Date();
-      const closestEntry = entries.reduce((a, b) => a.pubDate - today < b.pubDate - today ? a : b);
+      const closestEntry = entries.reduce((a, b) => a.pubDate - today < b.pubDate - today ? a : b)
       closest = new Date(closestEntry.pubDate);
     }
 
@@ -111,7 +111,9 @@ function build(opts={}) {
             id: id
         }
     });
-    if(entry.content == undefined) {
+    const content = entry[0].content
+    console.log(entry[0].content)
+    if(entry[0].content === "") {
       const entryContent = await fetchContent(entry[0])
       const cleanedContent = entryContent
           .replace(/src=".*.svg"/g, "")
@@ -119,6 +121,7 @@ function build(opts={}) {
           .replace(/w283.jpg/g, "w500.jpg")
           .replace(/h200.jpg/g, 'h500.jpg')
       entry[0].content = cleanedContent
+      await Entry.update({ content: cleanedContent }, { where: { id: id } });
     }
     return {entry}
   });
