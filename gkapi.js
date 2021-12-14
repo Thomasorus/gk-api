@@ -7,7 +7,7 @@ const HTMLParser = require('node-html-parser');
 const fastifyCron = require('fastify-cron');
 const RssParser = require('rss-parser');
 const compareAsc = require('date-fns/compareAsc')
-
+const parseISO = require('date-fns/parseISO')
 
 fastify.register(require('fastify-rate-limit'), {
     max: 100,
@@ -17,7 +17,7 @@ fastify.register(require('fastify-rate-limit'), {
 
 fastify.register(require('fastify-cors'), {
   origin: true,
-      methods: ["GET","POST", "DELETE", "PUT", "PATCH"]
+  methods: ["GET","POST", "DELETE", "PUT", "PATCH"]
 })
 
 
@@ -56,7 +56,7 @@ function build(opts={}) {
     items.forEach(el => {
       if (closest) {
         const elDate = toDatetime(el.pubDate)
-          if(compareAsc(elDate, closest) > 0) {
+          if(compareAsc(parseISO(elDate), parseISO(closest)) > 0) {
           const obj = {
             guid: el.guid,
             title: el.title,
