@@ -40,7 +40,7 @@ function build(opts={}) {
 
   fastify.get('/update', async function (request, reply) {
 
-    const feed = await rssParser.parseURL("https://www.gamekult.com/feed.xml");
+    const feed = await rssParser.parseURL("https://www.gamekult.com/feed.xml?page=3");
     const items = feed.items
 
     await Entry.sync();
@@ -57,7 +57,9 @@ function build(opts={}) {
       if (closest) {
         const elDate = new Date(el.pubDate)
         const compare = compareAsc(closest, elDate)
-          if(compare === 1) {
+        console.log({elDate})
+        console.log({compare})
+          if(compare === -1) {
           const obj = {
             guid: el.guid,
             title: el.title,
@@ -142,14 +144,6 @@ async function fetchContent(entry) {
   const root = HTMLParser.parse(body, options)
   const content = root.querySelector('.gk__content__container')
   return content.toString()
-}
-
-function toDatetime(pubDate) {
-  const date = new Date(pubDate);
-  console.log({date})
-  const months = Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
-  const string = date.getDate() + " " + months[date.getMonth()] + " " + date.getFullYear()
-  return string
 }
 
 module.exports = build;
